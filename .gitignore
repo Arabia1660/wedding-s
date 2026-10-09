@@ -1,0 +1,12 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Private — guest RSVPs and the admin password
+wedding.db
+local_settings.py
+
+# macOS
+.DS_Store

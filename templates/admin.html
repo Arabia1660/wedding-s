@@ -1,0 +1,98 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RSVP dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3b4a2c;--gold:#b0873a;--paper:#f6f2e6;--rose:#b5566a}
+*{box-sizing:border-box}
+body{margin:0;font-family:Jost,system-ui,sans-serif;background:var(--paper);color:#2d2a2e}
+header{background:var(--ink);color:#f6ecd2;padding:1.2rem 4vw;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+header h1{font-family:"Great Vibes",cursive;font-weight:400;font-size:2.2rem;margin:0}
+header nav{display:flex;gap:.6rem;flex-wrap:wrap}
+.btn{text-decoration:none;font-size:.9rem;padding:.55rem 1rem;border-radius:999px;border:1px solid var(--gold);color:#f6ecd2}
+.btn:hover{background:var(--gold);color:var(--ink)}
+main{padding:2rem 4vw}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem}
+.stat{background:#fff;border:1px solid #ecdccd;border-radius:8px;padding:1.2rem}
+.stat b{display:block;font-size:2.2rem;font-weight:600;color:var(--ink)}
+.stat span{color:#6f6560;font-size:.92rem}
+.stat.main{background:var(--ink);color:#f6ecd2;border-color:var(--ink)}
+.stat.main b{color:#f6ecd2}.stat.main span{color:#e6cf9a}
+h2{margin:2.5rem 0 1rem;color:var(--ink);font-weight:600}
+.table-wrap{overflow-x:auto;background:#fff;border:1px solid #ecdccd;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{text-align:left;padding:.75rem .9rem;border-bottom:1px solid #f0e3d6;vertical-align:top}
+th{background:#efe8d4;color:var(--ink);font-weight:600;white-space:nowrap}
+.yes{color:#2e7d4f;font-weight:600}.no{color:var(--rose);font-weight:600}
+.del{background:none;border:0;color:var(--rose);cursor:pointer;font:inherit;text-decoration:underline}
+.search{padding:.6rem .9rem;border:1px solid #d9cdaf;border-radius:6px;font:inherit;width:min(320px,100%);margin-bottom:1rem}
+.empty{padding:2rem;text-align:center;color:#6f6560}
+.hidden-wish{opacity:.45}
+</style></head><body>
+<header>
+  <h1>{{ c.NAME_1 }} & {{ c.NAME_2 }} — RSVPs</h1>
+  <nav>
+    <a class="btn" href="{{ url_for('export_csv') }}">Download CSV</a>
+    <a class="btn" href="{{ url_for('home') }}" target="_blank">View invitation</a>
+    <a class="btn" href="{{ url_for('admin_logout') }}">Log out</a>
+  </nav>
+</header>
+<main>
+  <div class="stats">
+    <div class="stat main"><b>{{ stats.guests }}</b><span>Total guests coming</span></div>
+    <div class="stat"><b>{{ stats.responses }}</b><span>Responses</span></div>
+    <div class="stat"><b>{{ stats.yes }}</b><span>Accepted</span></div>
+    <div class="stat"><b>{{ stats.no }}</b><span>Declined</span></div>
+    {% for k, n in stats.per_event.items() %}
+    <div class="stat"><b>{{ n }}</b><span>Guests at {{ names[k] }}</span></div>
+    {% endfor %}
+  </div>
+
+  <h2>Responses</h2>
+  <input class="search" id="q" placeholder="Search by name or phone" aria-label="Search responses">
+  <div class="table-wrap">
+    {% if rows %}
+    <table id="tbl">
+      <thead><tr><th>Name</th><th>Reply</th><th>Guests</th><th>Events</th><th>Meal</th><th>Phone</th><th>Email</th><th>Message</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><b>{{ r.name }}</b></td>
+        <td class="{{ r.attending }}">{{ 'Coming' if r.attending=='yes' else 'Not coming' }}</td>
+        <td>{{ r.guests }}</td>
+        <td>{% for k in (r.events or '').split(',') if k %}{{ names.get(k,k) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+        <td>{{ r.meal if r.attending=='yes' else '' }}</td>
+        <td>{{ r.phone }}</td><td>{{ r.email }}</td>
+        <td style="max-width:260px">{{ r.message }}</td>
+        <td style="white-space:nowrap">{{ r.created_at.replace('T',' ')[:16] }}</td>
+        <td><form method="post" action="{{ url_for('delete_rsvp', rid=r.id) }}" onsubmit="return confirm('Delete this RSVP?')"><button class="del">Delete</button></form></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="empty">No RSVPs yet. Share your invitation link to start collecting replies.</p>{% endif %}
+  </div>
+
+  <h2 id="wishes">Wishes</h2>
+  <div class="table-wrap">
+    {% if wishes %}
+    <table>
+      <thead><tr><th>Name</th><th>Message</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for w in wishes %}
+      <tr class="{{ '' if w.approved else 'hidden-wish' }}">
+        <td><b>{{ w.name }}</b></td><td>{{ w.message }}</td>
+        <td>{{ 'Shown' if w.approved else 'Hidden' }}</td>
+        <td><form method="post" action="{{ url_for('toggle_wish', wid=w.id) }}"><button class="del">{{ 'Hide' if w.approved else 'Show' }}</button></form></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="empty">No wishes yet.</p>{% endif %}
+  </div>
+</main>
+<script>
+const q=document.getElementById('q');
+q&&q.addEventListener('input',()=>{const v=q.value.toLowerCase();
+ document.querySelectorAll('#tbl tbody tr').forEach(tr=>tr.style.display=tr.textContent.toLowerCase().includes(v)?'':'none');});
+</script>
+</body></html>
