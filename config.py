@@ -72,9 +72,6 @@ CONTACTS = []
 RSVP_DEADLINE = "18 October 2026"
 MAX_GUESTS_PER_RSVP = 6
 
-# Small credit line at the very bottom of the page ("" hides it)
-CREDIT = "Developed by Arabia Hossain"
-
 # Admin dashboard at /admin.
 # The real password and secret key are NOT stored here (this file is public on GitHub).
 # Put them in local_settings.py (ignored by git) or set the ADMIN_PASSWORD / SECRET_KEY
