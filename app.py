@@ -75,8 +75,18 @@ def photos():
         return []
 
 
-def has_music():
-    return os.path.exists(os.path.join(BASE, "static", "music", "song.mp3"))
+def music_file():
+    name = getattr(config, "MUSIC_FILE", "music/song.mp3")
+    return name if os.path.exists(os.path.join(BASE, "static", name)) else None
+
+
+def wedding_day():
+    """Parts for writing the date properly, e.g. Wednesday · 21st October 2026."""
+    dt = datetime.fromisoformat(config.WEDDING_DATETIME)
+    n = dt.day
+    suffix = "th" if 11 <= n % 100 <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return {"weekday": dt.strftime("%A"), "day": n, "suffix": suffix,
+            "month_year": dt.strftime("%B %Y")}
 
 
 # ---------------------------------------------------------------- public
@@ -88,7 +98,7 @@ def home():
         "ORDER BY id DESC LIMIT 30").fetchall()
     return render_template("index.html", c=config, guest=guest,
                            wishes=wishes, photos=photos(),
-                           music=has_music())
+                           music=music_file(), wd=wedding_day())
 
 
 @app.post("/rsvp")

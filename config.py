@@ -19,6 +19,8 @@ HEADLINE_TOP = "You are warmly invited to the wedding of"
 INVITE_LINE = ("Your gracious presence will make our special day even more "
                "memorable as we begin a new chapter together.")
 CLOSING_LINE = "We look forward to sharing this joyful occasion with you."
+# The opening animation's headline (recreated from the save-the-date video)
+OPENING_LINE = "Finally, the date is out."
 # Shown beside the dancing illustration ("Two hearts · one journey")
 COUPLE_LINE = ("With grateful hearts and the blessings of our families, we are beginning "
                "our forever — and it would mean the world to have you there.")
@@ -60,7 +62,8 @@ FEATURED_PHOTOS = [
     "WhatsApp Image 2026-10-10 at 00.23.13.jpeg",       # garland      -> the celebration
     "WhatsApp Image 2026-10-10 at 00.20.55.jpeg",       # hand in hand -> footer
 ]
-# Music: put an mp3 at static/music/song.mp3 to enable the music button.
+# Music: plays from the start when a guest taps the envelope (path inside static/).
+MUSIC_FILE = "music/jakob_welik-murmures-de-la-seine-411960.mp3"
 
 # Contact people shown in the footer. Leave empty to hide.
 # Example: {"name": "Groom's side", "phone": "+880 1700-000000"},
